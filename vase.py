@@ -3,6 +3,12 @@
 
 import math
 import numpy as np 
+import os
+import time
+
+################################################
+################## CLASSES #####################
+################################################
 
 class Point:
     def __init__(self, pt):
@@ -22,6 +28,10 @@ class Vase:
         self.mid_fcts  = mid_fcts
         self.top_fcts  = top_fcts
 
+################################################
+########### FILE MODIFICATION HELPERS ##########
+################################################
+
 def write_line_to_file(file_path, line):
     with open(file_path, 'a') as file:
         file.write(line)
@@ -30,6 +40,21 @@ def clear_file(file_path):
     """Clear the contents of a file."""
     with open(file_path, 'w') as file:
         file.truncate(0)  # Truncate the file to 0 bytes
+
+def create_output_directory(directory_name):
+    """Create the output directory if it doesn't exist."""
+    if not os.path.exists(directory_name):
+        os.makedirs(directory_name)
+
+def generate_unique_filename():
+    """Generate a unique filename using the current timestamp."""
+    timestamp = int(time.time())
+    return f"vase_{timestamp}.stl"  
+    # Example filename format: vase_<timestamp>.stl
+
+################################################
+########### VASE GENERATION HELPERS ############
+################################################
 
 # Given the 3 vertexes and normal vector for a facet, 
 # Returns a facet string properly formatted for an ASCII STL file
@@ -66,9 +91,11 @@ def write_facet_set(filename, set_of_fcts):
         write_line_to_file(filename, format_facet(facet))
 
 # Writes the ASCII STL file from start to finish
-def write_stl(filename, vase):
-    # Name of file is vase
-    clear_file(filename)
+def write_stl(vase):
+    filename = os.path.join("output", generate_unique_filename())
+
+    clear_file(filename) # In case it already exists
+    
     write_line_to_file(filename, "solid vase\n")
 
     write_facet_set(filename, vase.base_fcts)
@@ -76,7 +103,6 @@ def write_stl(filename, vase):
     write_facet_set(filename, vase.mid_fcts)
     write_facet_set(filename, vase.top_fcts)
 
-    # Footer to end the solid
     write_line_to_file(filename, "endsolid\n")
 
     print(f"Your finished vase is written in STL file '{filename}'.")
@@ -182,31 +208,22 @@ def main():
     h3 = h3 + h2 + h1
     
     base_r  = float(input("Enter the radius of the base (r1): "))
-    belly_r = float(input("Enter the radius of the belly (r2): "))
-    neck_r  = float(input("Enter the radius of the neck (r3): "))
-    mouth_r = float(input("Enter the radius of the mouth (r4): "))
 
-    # VALIDATION 
-    # Assume the vase must have a general S (or Z) shape, therefore
-    # neck_r must be smaller than both mouth_r and belly_r
-    # all of h1, h2, h3 must be > 0
+    while (neck_r < belly_r) and (neck_r < mouth_r):
+        print("To preserve the 'S' shape, please ensure the neck radius is less than the belly AND neck. ")
+        belly_r = float(input("Enter the radius of the belly (r2): "))
+        neck_r  = float(input("Enter the radius of the neck (r3): "))
+        mouth_r = float(input("Enter the radius of the mouth (r4): "))
 
     num_sides = None
     while num_sides is None or (num_sides is not None and (num_sides < 8 or num_sides > 64)):
-        num_sides = int(input("Choose a number of sides for the base of the vase between 8 and 64: "))
+        num_sides = int(input("Please choose a number of sides for the base of the vase between 8 and 64: "))
 
-    
     # Generate the circular points
     base_pts = generate_pts(base_r, 0, num_sides)
     belly_pts = generate_pts(belly_r, h1, num_sides)
     neck_pts = generate_pts(neck_r, h2, num_sides)
     mouth_pts = generate_pts(mouth_r, h3, num_sides)
-
-    # PRINT
-    print(base_pts)
-    print(belly_pts)
-    print(neck_pts)
-    print(mouth_pts)
     
     base_fcts = generate_base_fcts(base_pts, num_sides)
     low_fcts = generate_fcts(base_pts, belly_pts, num_sides)
@@ -215,8 +232,7 @@ def main():
 
     vase = Vase(base_fcts, low_fcts, mid_fcts, top_fcts)
 
-    filename = "new.stl"
-    write_stl(filename, vase)
+    write_stl(vase)
 
 if __name__ == "__main__":
     main()
