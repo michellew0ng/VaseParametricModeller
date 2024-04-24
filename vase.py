@@ -5,42 +5,68 @@ import math
 import numpy as np 
 
 class Point:
-    def __init__(self, x, y, z):
-        self.x = x
-        self.y = y
-        self.z = z
+    def __init__(self, pt):
+        self.pt = pt # np array
 
+class Facet:
+    def __init__(self, v1, v2, v3, normal):
+        self.pt1 = v1
+        self.pt2 = v2
+        self.pt3 = v3
+        self.normal = normal
 
-def write_stl(filename):
-    # Name of file is vase
-    header = 'solid vase\n'
+class Vase:
+    def __init__(self, base_fcts, low_fcts, mid_fcts, top_fcts):
+        self.base_fcts = base_fcts
+        self.low_fcts = low_fcts
+        self.mid_fcts  = mid_fcts
+        self.top_fcts  = top_fcts
 
-    # Define the normal and vertices for one triangle
-    normal = (0.0, 0.0, 1.0)
-    vertex1 = (0.0, 0.0, 0.0)
-    vertex2 = (1.0, 0.0, 0.0)
-    vertex3 = (0.0, 1.0, 0.0)
+def write_line_to_file(file_path, line):
+    with open(file_path, 'a') as file:
+        file.write(line)
 
-    # Create the facet
-    facet = f'''
-    facet normal {normal[0]} {normal[1]} {normal[2]}
+# Given the 3 vertexes and normal vector for a facet, 
+# Returns a facet string properly formatted for an ASCII STL file
+def format_facet(facet):
+    # Create a template string for the facet
+    facet_template = """
+    facet normal {0} {1} {2}
         outer loop
-            vertex {vertex1[0]} {vertex1[1]} {vertex1[2]}
-            vertex {vertex2[0]} {vertex2[1]} {vertex2[2]}
-            vertex {vertex3[0]} {vertex3[1]} {vertex3[2]}
+            vertex {3} {4} {5}
+            vertex {6} {7} {8}
+            vertex {9} {10} {11}
         endloop
     endfacet
-    '''
+    """
+    n, v1, v2, v3 = facet.normal, facet.v1, facet.v2, facet.v3
+    # Format all floats in scientific notation and fill in the template
+    # Vertexes should be in anticlockwise format
+    facet_str = facet_template.format(
+        format(n[0], ".6e"), format(n[1], ".6e"), format(n[2], ".6e"),
+        format(v1[0], ".6e"), format(v1[1], ".6e"), format(v1[2], ".6e"),
+        format(v2[0], ".6e"), format(v2[1], ".6e"), format(v2[2], ".6e"),
+        format(v3[0], ".6e"), format(v3[1], ".6e"), format(v3[2], ".6e")
+    )
+    return facet_str
+
+# Writes a complete set of facets to file
+def write_facet_set(file_path, set_of_fcts):
+    for facet in set_of_fcts:
+        write_line_to_file(format_facet(facet))
+
+# Writes the ASCII STL file from start to finish
+def write_stl(filename, vase):
+    # Name of file is vase
+    write_line_to_file('solid vase\n')
+
+    write_facet_set(filename, vase.base_fcts)
+    write_facet_set(filename, vase.low_fcts)
+    write_facet_set(filename, vase.mid_fcts)
+    write_facet_set(filename, vase.top_fcts)
 
     # Footer to end the solid
-    footer = 'endsolid'
-
-    # Combine all parts into one STL string
-    stl_string = f"{header}{facet}{footer}"
-
-    # Write the STL string to file
-    with open(filename, 'w') as file:
-        file.write(stl_string)
+    write_line_to_file('endsolid')
 
     print(f"Your finished vase is written in STL file '{filename}'.")
 
@@ -52,43 +78,130 @@ def generate_pts(radius, height, num_sides):
     angle = np.radians(360/num_sides) # The angle of difference between each vertice 
 
     # Define the transformation matrix to rotate angle_of_diff around the z axis
-    M = np.array([[np.cos(angle), -1 * np.sin(angle), 0],
+    # Note that this is anti clockwise rotation
+    rotation_matrix = np.array([[np.cos(angle), -1 * np.sin(angle), 0],
                 [np.sin(angle), np.cos(angle), 0],
                 [0, 0, 1]])
     
-    for i in range(num_sides):
-        new = Point()
+    # Start on the x axis (potentially elevated)
+    start_pt = Point(np.array([0, radius, height])) 
+    curr_pt = start_pt
+    points.append(start_pt)
+    # Note: -1 because the start point has already been appended
+    for i in range(num_sides - 1):
+        rotated_point = Point(np.dot(rotation_matrix, curr_pt.pt))
+        points.append(rotated_point)
 
-        new.z = height
+    points.append(start_pt)
+
     return points
+
+# Given 3 non-collinear points on a plane, generates a normal vector for the plane 
+def normal_vector(pt1, pt2, pt3):
+    # Generate 2 vectors on the plane
+    v1 = pt3 - pt1
+    v2 = pt2 - pt1
+
+    normal = np.cross(v1, v2)
+
+    return normal
+
+# Given a bottom and top ring of points, returns a list of facets for the planes created by 
+# Drawing straight between corresponding points in both rings
+def generate_fcts(bottom_ring, top_ring, num_sides):
+    facets = []
+    
+    for i in range(num_sides):
+        top_left = top_ring[i].pt
+        top_right = top_ring[i + 1].pt
+        btm_left = bottom_ring[i].pt
+        btm_right = bottom_ring[i + 1].pt
+
+        # Calculate normal
+        normal = (top_left, top_right, btm_left)
+
+        facet1 = Facet(btm_right, top_right, top_left, normal)
+        facet2 = Facet(top_left, btm_left, btm_right, normal)
+        facets.append(facet1)
+        facets.append(facet2)
+
+    return facets
+
+# Generates the 'pizza' facets that form the base
+def generate_base_fcts(bottom_ring, num_sides):
+    base_fcts = []
+    
+    left_pt = None
+    right_pt = None
+    null_pt = np.array([0, 0, 0]) # All facets here will include zero point
+    normal = np.array([0, 0, 1]) # Normal vector to base x/y plane
+    for i in range(num_sides):
+        left_pt = bottom_ring[i].pt
+        right_pt = bottom_ring[i + 1].pt
+        facet = Facet(null_pt, right_pt, left_pt, normal)
+        base_fcts.append(facet)
+
+    return base_fcts
 
 def main():
     print("Welcome to the Parametric Vase Generator!")
     print("To generate your perfect vase, we will need to take 6 parameters -- 4 radii, and 3 heights.")
     
     # All parameters are labelled from base to mouth
+    h1 = None
+    h2 = None
+    h3 = None
+
     h1 = float(input("Enter the height of the bottom plane of the belly (h1): "))
+    while h1 <= 0:
+        print("Please input a valid height over 0.")
+        h1 = float(input("Enter the height of the bottom plane of the belly (h1): "))
+
     h2 = float(input("Enter the height of the top plane of the belly (h2): "))
-    h1 = float(input("Enter the height of the neck (h3): "))
+    while h2 <= 0:
+        print("Please input a valid height over 0.")
+        h2 = float(input("Enter the height of the top plane of the belly (h2): "))
+
+    h3 = float(input("Enter the height of the neck (h3): "))
+    while h3 <= 0:
+        print("Please input a valid height over 0.")
+        h3 = float(input("Enter the height of the neck (h3): "))
     
     base_r  = float(input("Enter the radius of the base (r1): "))
     belly_r = float(input("Enter the radius of the belly (r2): "))
     neck_r  = float(input("Enter the radius of the neck (r3): "))
     mouth_r = float(input("Enter the radius of the mouth (r4): "))
 
+    # VALIDATION 
+    # Assume the vase must have a general S (or Z) shape, therefore
+    # neck_r must be smaller than both mouth_r and belly_r
+    # all of h1, h2, h3 must be > 0
+
     num_sides = None
     while num_sides is None or (num_sides is not None and (num_sides < 8 or num_sides > 64)):
-        num_sides = float(input("Choose a number of sides for the base of the vase between 8 and 64: "))
+        num_sides = int(input("Choose a number of sides for the base of the vase between 8 and 64: "))
 
     
     # Generate the circular points
     base_pts = generate_pts(base_r, 0, num_sides)
-    belly_pts = generate_pts(belly_r, 0, num_sides)
-    neck_pts = generate_pts(neck_r, 0, num_sides)
-    mouth_pts = generate_pts(mouth_r, 0, num_sides)
+    belly_pts = generate_pts(belly_r, h1, num_sides)
+    neck_pts = generate_pts(neck_r, h2, num_sides)
+    mouth_pts = generate_pts(mouth_r, h3, num_sides)
+
+    # PRINT
+    print(base_pts)
+    print(belly_pts)
+    print(neck_pts)
+    print(mouth_pts)
+    
+    vase = Vase()
+    vase.base_fcts = generate_base_fcts(base_pts, num_sides)
+    vase.low_fcts = generate_fcts(base_pts, belly_pts, num_sides)
+    vase.mid_fcts = generate_fcts(belly_pts, neck_pts, num_sides)
+    vase.top_fcts = generate_fcts(neck_pts, mouth_pts, num_sides)
 
     filename = "vase.stl"
-    write_stl(filename)
+    write_stl(filename, vase)
 
 if __name__ == "__main__":
     main()
