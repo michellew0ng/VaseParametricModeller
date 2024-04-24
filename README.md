@@ -23,6 +23,7 @@ Please also see below some screenshots of example vases viewed in 3dviewer.net
 <img width="350" alt="image" src="https://github.com/michellew0ng/VaseParametricModeller/assets/67090127/a8d68071-9539-4fb9-9ab7-6d38bcda357d">
 <img width="320" alt="image" src="https://github.com/michellew0ng/VaseParametricModeller/assets/67090127/eb72a1a6-3456-4781-9850-a6165b901f86">
 </div>
+
 # Purpose
 The aim of this tool is to be able to visualise and decide simple proportions of simple vases for wheel throwers like myself.
 Please enjoy!
