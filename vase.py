@@ -26,6 +26,11 @@ def write_line_to_file(file_path, line):
     with open(file_path, 'a') as file:
         file.write(line)
 
+def clear_file(file_path):
+    """Clear the contents of a file."""
+    with open(file_path, 'w') as file:
+        file.truncate(0)  # Truncate the file to 0 bytes
+
 # Given the 3 vertexes and normal vector for a facet, 
 # Returns a facet string properly formatted for an ASCII STL file
 def format_facet(facet):
@@ -63,6 +68,7 @@ def write_facet_set(filename, set_of_fcts):
 # Writes the ASCII STL file from start to finish
 def write_stl(filename, vase):
     # Name of file is vase
+    clear_file(filename)
     write_line_to_file(filename, "solid vase\n")
 
     write_facet_set(filename, vase.base_fcts)
@@ -96,6 +102,7 @@ def generate_pts(radius, height, num_sides):
     for i in range(num_sides - 1):
         rotated_point = Point(np.dot(rotation_matrix, curr_pt.pt))
         points.append(rotated_point)
+        curr_pt.pt = rotated_point.pt 
 
     points.append(start_pt)
 
@@ -166,11 +173,13 @@ def main():
     while h2 <= 0:
         print("Please input a valid height over 0.")
         h2 = float(input("Enter the height of the top plane of the belly (h2): "))
+    h2 = h2 + h1
 
     h3 = float(input("Enter the height of the neck (h3): "))
     while h3 <= 0:
         print("Please input a valid height over 0.")
         h3 = float(input("Enter the height of the neck (h3): "))
+    h3 = h3 + h2 + h1
     
     base_r  = float(input("Enter the radius of the base (r1): "))
     belly_r = float(input("Enter the radius of the belly (r2): "))
@@ -206,7 +215,7 @@ def main():
 
     vase = Vase(base_fcts, low_fcts, mid_fcts, top_fcts)
 
-    filename = "vase.stl"
+    filename = "new.stl"
     write_stl(filename, vase)
 
 if __name__ == "__main__":
