@@ -1,5 +1,5 @@
 # Michelle Wong PRA1817277 on 24th April
-# This program generates an ASCII STL file for a simple vase ith several user given parameters for height and radius
+# This program generates an ASCII STL file for a simple vase with 7 user given parameters for height and radius
 
 import math
 import numpy as np 
@@ -210,13 +210,13 @@ def main():
     h3 = h3 + h2
     
     base_r  = float(input("Enter the radius of the base (r1): "))
-
     belly_r = float(input("Enter the radius of the belly (r2): "))
     neck_r  = float(input("Enter the radius of the neck (r3): "))
     mouth_r = float(input("Enter the radius of the mouth (r4): "))
 
     while (neck_r >= belly_r) and (neck_r >= mouth_r):
-        print("To preserve the 'S' shape, please ensure the neck radius is LESS THAN the belly AND neck. ")
+        print("To preserve the 'S' shape, please ensure the neck and base radii are both LESS THAN the belly AND neck. ")
+        base_r  = float(input("Enter the radius of the base (r1): "))
         belly_r = float(input("Enter the radius of the belly (r2): "))
         neck_r  = float(input("Enter the radius of the neck (r3): "))
         mouth_r = float(input("Enter the radius of the mouth (r4): "))
