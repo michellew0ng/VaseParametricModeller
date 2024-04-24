@@ -4,6 +4,13 @@
 import math
 import numpy as np 
 
+class Point:
+    def __init__(self, x, y, z):
+        self.x = x
+        self.y = y
+        self.z = z
+
+
 def write_stl(filename):
     # Name of file is vase
     header = 'solid vase\n'
@@ -38,9 +45,22 @@ def write_stl(filename):
     print(f"Your finished vase is written in STL file '{filename}'.")
 
 # Generates points in a radius given additional parameters the height from base and number of sides
-def generate_points(radius, height, sides):
+# The first point will appear at the start and the end in a circular fashion, ie. [pt1, pt2, pt3, .... pt1]
+def generate_pts(radius, height, num_sides):
+    points = []
 
-    pass
+    angle = np.radians(360/num_sides) # The angle of difference between each vertice 
+
+    # Define the transformation matrix to rotate angle_of_diff around the z axis
+    M = np.array([[np.cos(angle), -1 * np.sin(angle), 0],
+                [np.sin(angle), np.cos(angle), 0],
+                [0, 0, 1]])
+    
+    for i in range(num_sides):
+        new = Point()
+
+        new.z = height
+    return points
 
 def main():
     print("Welcome to the Parametric Vase Generator!")
@@ -51,22 +71,21 @@ def main():
     h2 = float(input("Enter the height of the top plane of the belly (h2): "))
     h1 = float(input("Enter the height of the neck (h3): "))
     
-    r1 = float(input("Enter the radius of the base (r1): "))
-    r2 = float(input("Enter the radius of the belly (r2): "))
-    r2 = float(input("Enter the radius of the neck (r3): "))
-    r3 = float(input("Enter the radius of the mouth (r4): "))
+    base_r  = float(input("Enter the radius of the base (r1): "))
+    belly_r = float(input("Enter the radius of the belly (r2): "))
+    neck_r  = float(input("Enter the radius of the neck (r3): "))
+    mouth_r = float(input("Enter the radius of the mouth (r4): "))
 
     num_sides = None
     while num_sides is None or (num_sides is not None and (num_sides < 8 or num_sides > 64)):
         num_sides = float(input("Choose a number of sides for the base of the vase between 8 and 64: "))
 
-    angle = np.radians(360/num_sides) # The angle of difference between each vertice 
-
-    # circular points around the 4 radii
-    mouth_pts = 
-    neck_pts = 
-    belly_pts = 
-    base_pts = 
+    
+    # Generate the circular points
+    base_pts = generate_pts(base_r, 0, num_sides)
+    belly_pts = generate_pts(belly_r, 0, num_sides)
+    neck_pts = generate_pts(neck_r, 0, num_sides)
+    mouth_pts = generate_pts(mouth_r, 0, num_sides)
 
     filename = "vase.stl"
     write_stl(filename)
