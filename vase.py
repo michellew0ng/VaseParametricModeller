@@ -10,9 +10,9 @@ class Point:
 
 class Facet:
     def __init__(self, v1, v2, v3, normal):
-        self.pt1 = v1
-        self.pt2 = v2
-        self.pt3 = v3
+        self.v1 = v1
+        self.v2 = v2
+        self.v3 = v3
         self.normal = normal
 
 class Vase:
@@ -39,7 +39,12 @@ def format_facet(facet):
         endloop
     endfacet
     """
-    n, v1, v2, v3 = facet.normal, facet.v1, facet.v2, facet.v3
+    n = facet.normal.tolist()
+    v1 = facet.v1.tolist()
+    v2 = facet.v2.tolist()
+    v3 = facet.v3.tolist()
+
+    
     # Format all floats in scientific notation and fill in the template
     # Vertexes should be in anticlockwise format
     facet_str = facet_template.format(
@@ -51,14 +56,14 @@ def format_facet(facet):
     return facet_str
 
 # Writes a complete set of facets to file
-def write_facet_set(file_path, set_of_fcts):
+def write_facet_set(filename, set_of_fcts):
     for facet in set_of_fcts:
-        write_line_to_file(format_facet(facet))
+        write_line_to_file(filename, format_facet(facet))
 
 # Writes the ASCII STL file from start to finish
 def write_stl(filename, vase):
     # Name of file is vase
-    write_line_to_file('solid vase\n')
+    write_line_to_file(filename, "solid vase\n")
 
     write_facet_set(filename, vase.base_fcts)
     write_facet_set(filename, vase.low_fcts)
@@ -66,7 +71,7 @@ def write_stl(filename, vase):
     write_facet_set(filename, vase.top_fcts)
 
     # Footer to end the solid
-    write_line_to_file('endsolid')
+    write_line_to_file(filename, "endsolid\n")
 
     print(f"Your finished vase is written in STL file '{filename}'.")
 
@@ -118,7 +123,7 @@ def generate_fcts(bottom_ring, top_ring, num_sides):
         btm_right = bottom_ring[i + 1].pt
 
         # Calculate normal
-        normal = (top_left, top_right, btm_left)
+        normal = normal_vector(top_left, top_right, btm_left)
 
         facet1 = Facet(btm_right, top_right, top_left, normal)
         facet2 = Facet(top_left, btm_left, btm_right, normal)
@@ -194,11 +199,12 @@ def main():
     print(neck_pts)
     print(mouth_pts)
     
-    vase = Vase()
-    vase.base_fcts = generate_base_fcts(base_pts, num_sides)
-    vase.low_fcts = generate_fcts(base_pts, belly_pts, num_sides)
-    vase.mid_fcts = generate_fcts(belly_pts, neck_pts, num_sides)
-    vase.top_fcts = generate_fcts(neck_pts, mouth_pts, num_sides)
+    base_fcts = generate_base_fcts(base_pts, num_sides)
+    low_fcts = generate_fcts(base_pts, belly_pts, num_sides)
+    mid_fcts = generate_fcts(belly_pts, neck_pts, num_sides)
+    top_fcts = generate_fcts(neck_pts, mouth_pts, num_sides)
+
+    vase = Vase(base_fcts, low_fcts, mid_fcts, top_fcts)
 
     filename = "vase.stl"
     write_stl(filename, vase)
