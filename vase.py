@@ -92,10 +92,12 @@ def write_facet_set(filename, set_of_fcts):
 
 # Writes the ASCII STL file from start to finish
 def write_stl(vase):
-    filename = os.path.join("output", generate_unique_filename())
+    dir_name = "output"
+    create_output_directory(dir_name)
+    filename = os.path.join(dir_name, generate_unique_filename())
 
     clear_file(filename) # In case it already exists
-    
+
     write_line_to_file(filename, "solid vase\n")
 
     write_facet_set(filename, vase.base_fcts)
@@ -183,7 +185,7 @@ def generate_base_fcts(bottom_ring, num_sides):
 
 def main():
     print("Welcome to the Parametric Vase Generator!")
-    print("To generate your perfect vase, we will need to take 6 parameters -- 4 radii, and 3 heights.")
+    print("To generate your perfect vase, we will need to take 7 parameters -- 4 radii, and 3 heights.")
     
     # All parameters are labelled from base to mouth
     h1 = None
@@ -209,8 +211,12 @@ def main():
     
     base_r  = float(input("Enter the radius of the base (r1): "))
 
-    while (neck_r < belly_r) and (neck_r < mouth_r):
-        print("To preserve the 'S' shape, please ensure the neck radius is less than the belly AND neck. ")
+    belly_r = float(input("Enter the radius of the belly (r2): "))
+    neck_r  = float(input("Enter the radius of the neck (r3): "))
+    mouth_r = float(input("Enter the radius of the mouth (r4): "))
+
+    while (neck_r >= belly_r) and (neck_r >= mouth_r):
+        print("To preserve the 'S' shape, please ensure the neck radius is LESS THAN the belly AND neck. ")
         belly_r = float(input("Enter the radius of the belly (r2): "))
         neck_r  = float(input("Enter the radius of the neck (r3): "))
         mouth_r = float(input("Enter the radius of the mouth (r4): "))
