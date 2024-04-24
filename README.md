@@ -5,9 +5,9 @@ _DM3D Final Project at the Universidad Politecnica de Valencia_
 
 This program generates a 'Z-shaped' vase as an ASCII STL file when given 3 height parameters and 4 radius parameters. 
 Resolution ranges between a possible 8 and 128 faces around the circumference of the base. 
-
+<div align="center">
 <img width="336" alt="image" src="https://github.com/michellew0ng/VaseParametricModeller/assets/67090127/b5e9b128-c3ba-47de-b5ae-9ef948a2f2df">
-
+</div>
 
 You can find some example STL files in the 'output' folder.
 Please also see below some screenshots of example vases viewed in 3dviewer.net 
