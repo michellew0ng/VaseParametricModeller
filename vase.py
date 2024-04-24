@@ -222,8 +222,8 @@ def main():
         mouth_r = float(input("Enter the radius of the mouth (r4): "))
 
     num_sides = None
-    while num_sides is None or (num_sides is not None and (num_sides < 8 or num_sides > 64)):
-        num_sides = int(input("Please choose a number of sides for the base of the vase between 8 and 64: "))
+    while num_sides is None or (num_sides is not None and (num_sides < 8 or num_sides > 128)):
+        num_sides = int(input("Please choose a number of sides for the base of the vase between 8 and 128: "))
 
     # Generate the circular points
     base_pts = generate_pts(base_r, 0, num_sides)
