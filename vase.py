@@ -207,7 +207,7 @@ def main():
     while h3 <= 0:
         print("Please input a valid height over 0.")
         h3 = float(input("Enter the height of the neck (h3): "))
-    h3 = h3 + h2 + h1
+    h3 = h3 + h2
     
     base_r  = float(input("Enter the radius of the base (r1): "))
 
