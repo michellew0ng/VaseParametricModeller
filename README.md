@@ -1,6 +1,6 @@
 # Vase Parametric Modeller
-# by Michelle Wong on 24th April 
-DM3D Final Project at the Universidad Politecnica de Valencia
+**by Michelle Wong on 24th April 2024**
+_DM3D Final Project at the Universidad Politecnica de Valencia_
 
 This program generates a 'Z-shaped' vase as an ASCII STL file when given 3 height parameters and 4 radius parameters. 
 Resolution ranges between a possible 8 and 128 faces around the circumference of the base. 
