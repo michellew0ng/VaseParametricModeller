@@ -4,7 +4,7 @@
 import math
 import numpy as np 
 import os
-import time``
+import time
 
 ################################################
 ################## CLASSES #####################
@@ -127,7 +127,7 @@ def generate_pts(radius, height, num_sides):
     curr_pt = start_pt
     points.append(start_pt)
     # Note: -1 because the start point has already been appended
-    for i in range(num_sides - 1):
+    for i in range(num_sides):
         rotated_point = Point(np.dot(rotation_matrix, curr_pt.pt))
         points.append(rotated_point)
         curr_pt.pt = rotated_point.pt 
