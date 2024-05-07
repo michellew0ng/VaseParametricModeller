@@ -1,5 +1,4 @@
-import numpy as np 
-from mpl_toolkits.mplot3d import Axes3D
+import numpy as np
 
 class Vertex:
     def __init__(self, label, coordinates):
@@ -10,6 +9,34 @@ class Edge:
     def __init__(self, start_vertex, end_vertex):
         self.start_vertex = start_vertex
         self.end_vertex = end_vertex
+
+
+# Generates points in a radius given additional parameters the height from base and number of sides
+# The first point will appear at the start and the end in a circular fashion, ie. [pt1, pt2, pt3, .... pt1]
+def generate_pts(radius, height, num_sides):
+    points = []
+
+    angle = np.radians(360/num_sides) # The angle of difference between each vertice 
+
+    # Define the transformation matrix to rotate angle_of_diff around the z axis
+    # Note that this is anti clockwise rotation
+    rotation_matrix = np.array([[np.cos(angle), -1 * np.sin(angle), 0],
+                [np.sin(angle), np.cos(angle), 0],
+                [0, 0, 1]])
+    
+    # Start on the x axis (potentially elevated)
+    start_pt = np.array([0, radius, height]) 
+    curr_pt = start_pt
+    points.append(start_pt)
+    # Note: -1 because the start point has already been appended
+    for i in range(num_sides):
+        rotated_point = np.dot(rotation_matrix, curr_pt.pt)
+        points.append(rotated_point)
+        curr_pt.pt = rotated_point.pt 
+
+    points.append(start_pt)
+
+    return points
 
 def main():
     vertexes = []
@@ -29,35 +56,8 @@ def main():
     print('Enter the number of sides of your prism, n:')
     n = int(input())
 
-    adjacency_list = {}
-
-    angle = np.radians(360/n) # The angle of difference between each vertice 
-
-    # The first vertex to transform. Starts on the x axis
-    vector = np.array([[r],
-                                [0],
-                                [0]]) 
-    coordinates = tuple(vector.ravel())
-    first_vertex_base = Vertex(f"Vertex 1", coordinates)
-    vertexes.append(first_vertex_base)
-    upper = (coordinates[0], coordinates[1], coordinates[2]+h)
-    first_vertex_upper = Vertex(f"Vertex 2", upper)
-    vertexes.append(first_vertex_upper)
-    vertical_edge = Edge(first_vertex_base, first_vertex_upper)
-    edges.append(vertical_edge)
-
-    # Define the transformation matrix to rotate angle_of_diff around the z axis
-    M = np.array([[np.cos(angle), -1 * np.sin(angle), 0],
-                [np.sin(angle), np.cos(angle), 0],
-                [0, 0, 1]])
-
-    # Rotation and adding
-    
-    count = 0
-    prev_vertex_base = first_vertex_base
-    prev_vertex_upper = first_vertex_upper
-    vertex_base = None
-    vertex_upper = None
+    base_pts = generate_pts(r, 0, n)
+    top_pts = generate_pts(r, h, n)
 
     while count < (n - 1) * 2:
         # Generating the vertex for the base
